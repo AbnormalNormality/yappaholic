@@ -19,7 +19,12 @@ b.handleAuth(async (user) => {
 });
 loginButton.addEventListener("click", b.loginWithGoogle);
 logoutButton.addEventListener("click", b.logout);
-deleteAccountButton.addEventListener("click", b.deleteAccount);
+deleteAccountButton.addEventListener("click", async () => {
+  const doDelete = confirm(
+    "Are you sure you want to delete your account and posts?\nThis action is irreversible."
+  );
+  if (doDelete) await b.deleteAccount();
+});
 
 const postsMap = new Map<string, HTMLDivElement>();
 const postsContainer = document.querySelector<HTMLDivElement>("#posts")!;
@@ -57,7 +62,9 @@ async function handlePost(change: DocumentChange<DocumentData, DocumentData>) {
       deleteButton.classList.add("delete", "button", "important");
       deleteButton.innerText = "🗑";
       deleteButton.addEventListener("click", async () => {
-        const doDelete = confirm("Are you sure you want to delete this post?");
+        const doDelete = confirm(
+          "Are you sure you want to delete this post?\nThis action is irreversible."
+        );
         if (doDelete) await b.deletePost(id);
       });
       header.appendChild(deleteButton);
