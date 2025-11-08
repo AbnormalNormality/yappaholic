@@ -108,10 +108,36 @@ export async function logout() {
   await signOut(auth);
 }
 
+export async function deleteAccount() {
+  const currentUser = getCurrentUser();
+  if (!currentUser) return;
+
+  const userId = currentUser.uid;
+
+  const q = query(postsCol, where("author", "==", userId));
+  const snap = await getDocs(q);
+
+  const batch = writeBatch(db);
+  snap.forEach((doc) => batch.delete(doc.ref));
+  await batch.commit();
+
+  await deleteDoc(doc(usersCol, userId));
+  await currentUser.delete();
+}
+
+export async function updateUserUsername(displayname: string) {
+  const currentUser = getCurrentUser();
+  if (currentUser) {
+    const userDoc = doc(usersCol, currentUser.uid);
+    console.log(userDoc, currentUser.uid, displayname);
+    await setDoc(userDoc, { displayname }, { merge: true });
+  }
+}
+
 // Firestore
 
 const postsCol = collection(db, "posts");
-const postsQuery = query(postsCol, orderBy("timestamp", "asc"));
+const postsQuery = query(postsCol);
 
 let _handlePost: (change: DocumentChange<DocumentData, DocumentData>) => void = () => {};
 export function handlePost(callback: typeof _handlePost) {
@@ -160,21 +186,4 @@ export async function createPost(text: string) {
     };
     await setDoc(newPostDoc, newPostData);
   }
-}
-
-export async function deleteAccount() {
-  const currentUser = getCurrentUser();
-  if (!currentUser) return;
-
-  const userId = currentUser.uid;
-
-  const q = query(postsCol, where("author", "==", userId));
-  const snap = await getDocs(q);
-
-  const batch = writeBatch(db);
-  snap.forEach((doc) => batch.delete(doc.ref));
-  await batch.commit();
-
-  await deleteDoc(doc(usersCol, userId));
-  await currentUser.delete();
 }

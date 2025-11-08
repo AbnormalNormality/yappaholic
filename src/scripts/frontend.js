@@ -2,14 +2,14 @@ import * as b from "./backend.js";
 const loginButton = document.querySelector("#login");
 const logoutButton = document.querySelector("#logout");
 const deleteAccountButton = document.querySelector("#delete-account");
-const usernameText = document.querySelector("#username");
+const usernameInput = document.querySelector("#username");
 const postInputField = document.querySelector("#message-input");
 const sendPostButton = document.querySelector("#send-message");
 b.handleAuth(async (user) => {
     if (user) {
         document.documentElement.setAttribute("logged-in", "");
         const userData = await b.getUserById(user.uid);
-        usernameText.innerText = userData?.displayname || "Unknown User";
+        usernameInput.value = userData?.displayname || "Unknown User";
     }
     else {
         document.documentElement.removeAttribute("logged-in");
@@ -17,10 +17,28 @@ b.handleAuth(async (user) => {
 });
 loginButton.addEventListener("click", b.loginWithGoogle);
 logoutButton.addEventListener("click", b.logout);
+usernameInput.addEventListener("focusout", async () => {
+    const user = b.getCurrentUser();
+    if (user) {
+        const userData = await b.getUserById(user.uid);
+        usernameInput.value = userData?.displayname || "Unknown User";
+    }
+});
+usernameInput.addEventListener("keypress", async (e) => {
+    const user = b.getCurrentUser();
+    if (e.key === "Enter" && user) {
+        e.preventDefault();
+        const displayname = usernameInput.value.trim().slice(0, 16);
+        await b.updateUserUsername(displayname);
+        usernameInput.value = displayname;
+        usernameInput.blur();
+    }
+});
 deleteAccountButton.addEventListener("click", async () => {
     const doDelete = confirm("Are you sure you want to delete your account and posts?\nThis action is irreversible.");
-    if (doDelete)
+    if (doDelete) {
         await b.deleteAccount();
+    }
 });
 const postsMap = new Map();
 const postsContainer = document.querySelector("#posts");
@@ -38,6 +56,7 @@ async function handlePost(change) {
         if (b.getCurrentUser()?.uid === docData.author) {
             post.classList.add("own");
         }
+        post.setAttribute("timestamp", docData.timestamp.toMillis().toString());
         const header = document.createElement("div");
         header.classList.add("header");
         const authorData = await b.getUserById(docData.author);
@@ -70,6 +89,15 @@ async function handlePost(change) {
             postsContainer.prepend(post);
             postsMap.set(id, post);
         }
+    }
+    const sortedPosts = Array.from(postsMap.values()).sort((a, b) => {
+        const tsA = parseInt(a.getAttribute("timestamp"));
+        const tsB = parseInt(b.getAttribute("timestamp"));
+        return -1 * (tsA - tsB);
+    });
+    postsContainer.innerHTML = "";
+    for (const post of sortedPosts) {
+        postsContainer.appendChild(post);
     }
 }
 b.handlePost(async (change) => {

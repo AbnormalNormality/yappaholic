@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
 import { browserLocalPersistence, getAuth, GoogleAuthProvider, onAuthStateChanged, setPersistence, signInWithPopup, signOut, } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-import { collection, deleteDoc, doc, getDoc, getDocs, getFirestore, onSnapshot, orderBy, query, setDoc, Timestamp, where, writeBatch, } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+import { collection, deleteDoc, doc, getDoc, getDocs, getFirestore, onSnapshot, query, setDoc, Timestamp, where, writeBatch, } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 const firebaseConfig = {
     apiKey: "AIzaSyAn2ji3I_bry26KAs6pyngLe2qNV7SHkz4",
     authDomain: "yappaholic-feea8.firebaseapp.com",
@@ -65,9 +65,30 @@ export async function loginWithGoogle() {
 export async function logout() {
     await signOut(auth);
 }
+export async function deleteAccount() {
+    const currentUser = getCurrentUser();
+    if (!currentUser)
+        return;
+    const userId = currentUser.uid;
+    const q = query(postsCol, where("author", "==", userId));
+    const snap = await getDocs(q);
+    const batch = writeBatch(db);
+    snap.forEach((doc) => batch.delete(doc.ref));
+    await batch.commit();
+    await deleteDoc(doc(usersCol, userId));
+    await currentUser.delete();
+}
+export async function updateUserUsername(displayname) {
+    const currentUser = getCurrentUser();
+    if (currentUser) {
+        const userDoc = doc(usersCol, currentUser.uid);
+        console.log(userDoc, currentUser.uid, displayname);
+        await setDoc(userDoc, { displayname }, { merge: true });
+    }
+}
 // Firestore
 const postsCol = collection(db, "posts");
-const postsQuery = query(postsCol, orderBy("timestamp", "asc"));
+const postsQuery = query(postsCol);
 let _handlePost = () => { };
 export function handlePost(callback) {
     _handlePost = callback;
@@ -109,17 +130,4 @@ export async function createPost(text) {
         };
         await setDoc(newPostDoc, newPostData);
     }
-}
-export async function deleteAccount() {
-    const currentUser = getCurrentUser();
-    if (!currentUser)
-        return;
-    const userId = currentUser.uid;
-    const q = query(postsCol, where("author", "==", userId));
-    const snap = await getDocs(q);
-    const batch = writeBatch(db);
-    snap.forEach((doc) => batch.delete(doc.ref));
-    await batch.commit();
-    await deleteDoc(doc(usersCol, userId));
-    await currentUser.delete();
 }
