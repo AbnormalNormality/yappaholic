@@ -73,9 +73,13 @@ export function handleAuth(callback: typeof _handleAuth) {
 
 function randomUsername(): string {
   // cSpell:ignore boykisser
+  // const usernameParts = [
+  //   ["massive", "silly", "lewd", "fluffy"],
+  //   ["faggot", "boykisser"],
+  // ];
   const usernameParts = [
-    ["massive", "silly", "lewd", "fluffy"],
-    ["faggot", "boykisser"],
+    ["small", "big", "quick", "happy", "funny", "smart"],
+    ["cat", "dog", "chicken", "fish", "possum", "mouse"],
   ];
   return usernameParts.map((part) => part[Math.floor(Math.random() * part.length)]).join("");
 }

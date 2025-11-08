@@ -106,7 +106,8 @@ textarea {
 :root[logged-in] #login,
 :root:not([logged-in]) #logout,
 :root:not([logged-in]) #username,
-:root:not([logged-in]) #delete-account {
+:root:not([logged-in]) #delete-account,
+:root:not([logged-in]) #post-creator {
   display: none;
 }
 
