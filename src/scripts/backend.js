@@ -79,10 +79,14 @@ onSnapshot(postsQuery, (snapshot) => {
 export async function canDeletePost(postSnap) {
     if (postSnap.exists()) {
         const authorId = postSnap.data().author;
-        const authorData = (await getUserById(authorId)) ?? { power: 0 };
-        const userId = getCurrentUser()?.uid ?? "";
-        const userData = (await getUserById(userId)) ?? { power: 0 };
-        return authorId === userId || userData.power > authorData.power;
+        const authorData = await getUserById(authorId);
+        const userId = getCurrentUser()?.uid;
+        if (userId) {
+            const userData = await getUserById(userId);
+            if (authorData && userData) {
+                return authorId === userId || userData.power > authorData.power;
+            }
+        }
     }
     return false;
 }
