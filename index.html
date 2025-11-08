@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <base href="./" />
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Yappaholic</title>
+    <!-- <link rel="icon" href="assets/favicon.png" type="image.png" /> -->
+
+    <link rel="stylesheet" href="src/styles/main.css" />
+
+    <script type="module" src="src/scripts/frontend.js"></script>
+  </head>
+
+  <body>
+    <div id="header">
+      <div id="login" class="button">Login</div>
+      <div id="delete-account" class="button important">🗑</div>
+      <div id="username"></div>
+      <div id="logout" class="button">Logout</div>
+      <div id="logo">Yappaholic</div>
+    </div>
+    <div id="post-creator">
+      <textarea id="message-input" placeholder="What's on your mind?" maxlength="400"></textarea>
+      <div id="send-message" class="button">Post</div>
+    </div>
+    <div id="posts"></div>
+  </body>
+</html>
